@@ -4,7 +4,7 @@ import com.auth0.jwt.JWT;
 import com.auth0.jwt.algorithms.Algorithm;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import expertostech.autenticacao.jwt.data.DetalheUsuarioData;
-import expertostech.autenticacao.jwt.model.UsuarioModel;
+import expertostech.autenticacao.jwt.model.User;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -13,11 +13,11 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 
 import javax.servlet.FilterChain;
 import javax.servlet.ServletException;
+import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Date;
 
 public class JWTAutenticarFilter extends UsernamePasswordAuthenticationFilter {
 
@@ -30,17 +30,16 @@ public class JWTAutenticarFilter extends UsernamePasswordAuthenticationFilter {
         this.authenticationManager = authenticationManager;
     }
 
-
     @Override
     public Authentication attemptAuthentication(HttpServletRequest request,
                                                 HttpServletResponse response) throws AuthenticationException {
         try {
-            UsuarioModel usuario = new ObjectMapper()
-                    .readValue(request.getInputStream(), UsuarioModel.class);
+            User u = new ObjectMapper()
+                    .readValue(request.getInputStream(), User.class);
 
             return authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(
-                    usuario.getLogin(),
-                    usuario.getPassword(),
+                    u.getEmail(),
+                    u.getPassword(),
                     new ArrayList<>()
             ));
 
@@ -56,15 +55,25 @@ public class JWTAutenticarFilter extends UsernamePasswordAuthenticationFilter {
                                             FilterChain chain,
                                             Authentication authResult) throws IOException, ServletException {
 
+
         DetalheUsuarioData usuarioData = (DetalheUsuarioData) authResult.getPrincipal();
 
-        String token = JWT.create().
-                withSubject(usuarioData.getUsername())
-                .withExpiresAt(new Date(System.currentTimeMillis() + TOKEN_EXPIRACAO))
+        String token = JWT.create()
+                .withClaim("login", usuarioData.getUsername())
+                //.withExpiresAt(new Date(System.currentTimeMillis() + TOKEN_EXPIRACAO))
                 .sign(Algorithm.HMAC512(TOKEN_SENHA));
 
+        Cookie cookie = new Cookie("token", token);
+        cookie.setPath("/");
+        cookie.setHttpOnly(true);
+        //cookie.setSecure(false);
+        //cookie.setMaxAge(60 * 60); // 1 hora
+        
+        response.addCookie(cookie);
         response.getWriter().write(token);
         response.getWriter().flush();
+
+        super.successfulAuthentication(request, response, chain, authResult);
     }
 }
 

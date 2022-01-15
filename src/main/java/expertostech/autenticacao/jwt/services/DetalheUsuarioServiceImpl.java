@@ -1,8 +1,8 @@
 package expertostech.autenticacao.jwt.services;
 
 import expertostech.autenticacao.jwt.data.DetalheUsuarioData;
-import expertostech.autenticacao.jwt.model.UsuarioModel;
-import expertostech.autenticacao.jwt.repository.UsuarioRepository;
+import expertostech.autenticacao.jwt.model.User;
+import expertostech.autenticacao.jwt.repository.UserRepository;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -13,20 +13,19 @@ import java.util.Optional;
 @Component
 public class DetalheUsuarioServiceImpl implements UserDetailsService {
 
-    private final UsuarioRepository repository;
+    private final UserRepository repository;
 
-    public DetalheUsuarioServiceImpl(UsuarioRepository repository) {
+    public DetalheUsuarioServiceImpl(UserRepository repository) {
         this.repository = repository;
     }
 
     @Override
-    public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        Optional<UsuarioModel> usuario = repository.findByLogin(username);
-        if (usuario.isEmpty()) {
-            throw new UsernameNotFoundException("Usuário [" + username + "] não encontrado");
+    public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
+        Optional<User> user = repository.findByEmail(email);
+        if (user.isEmpty()) {
+            throw new UsernameNotFoundException("Usuário [" + email + "] não encontrado");
         }
-
-        return new DetalheUsuarioData(usuario);
+        return new DetalheUsuarioData(user);
     }
 
 }

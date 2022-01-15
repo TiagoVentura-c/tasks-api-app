@@ -1,6 +1,6 @@
 package expertostech.autenticacao.jwt.data;
 
-import expertostech.autenticacao.jwt.model.UsuarioModel;
+import expertostech.autenticacao.jwt.model.User;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
@@ -10,10 +10,10 @@ import java.util.Optional;
 
 public class DetalheUsuarioData implements UserDetails {
 
-    private final Optional<UsuarioModel> usuario;
+    private final Optional<User> user;
 
-    public DetalheUsuarioData(Optional<UsuarioModel> usuario) {
-        this.usuario = usuario;
+    public DetalheUsuarioData(Optional<User> user) {
+        this.user = user;
     }
 
     @Override
@@ -23,12 +23,12 @@ public class DetalheUsuarioData implements UserDetails {
 
     @Override
     public String getPassword() {
-        return usuario.orElse(new UsuarioModel()).getPassword();
+        return user.orElse(new User()).getPassword();
     }
 
     @Override
     public String getUsername() {
-        return usuario.orElse(new UsuarioModel()).getLogin();
+        return user.orElse(new User()).getEmail();
     }
 
     @Override
